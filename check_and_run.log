@@ -1,0 +1,43 @@
+🚀 Starting check_and_run.py
+✅ Fetched document from MongoDB: {'_id': ObjectId('681830a50a35fa1e3ebb6e60'), 'start_morning': datetime.datetime(2025, 5, 6, 6, 22), 'stop_morning': datetime.datetime(2025, 5, 6, 6, 27), 'start_evening': datetime.datetime(2025, 5, 6, 6, 0), 'stop_evening': datetime.datetime(2025, 5, 6, 6, 5), 'createdAt': datetime.datetime(2025, 5, 5, 3, 29, 41, 862000), 'updatedAt': datetime.datetime(2025, 5, 5, 3, 29, 41, 862000), '__v': 0}
+⏰ Current time: 2025-05-06 13:30:00+07:00
+📦 Last run data: {'start_morning': '13:22', 'stop_morning': '13:27', 'start_evening': '2025-05-06 13:01', 'stop_evening': '2025-05-06 13:06'}
+🔍 Checking event 'start_morning' → target time: 13:22:00
+⏭️ Not time for start_morning yet
+🔍 Checking event 'stop_morning' → target time: 13:27:00
+⏭️ Not time for stop_morning yet
+🔍 Checking event 'start_evening' → target time: 13:00:00
+⏭️ Not time for start_evening yet
+🔍 Checking event 'stop_evening' → target time: 13:05:00
+⏭️ Not time for stop_evening yet
+✅ Finished cycle
+
+🚀 Starting check_and_run.py
+✅ Fetched document from MongoDB: {'_id': ObjectId('681830a50a35fa1e3ebb6e60'), 'start_morning': datetime.datetime(2025, 5, 6, 0, 0), 'stop_morning': datetime.datetime(2025, 5, 6, 0, 0), 'start_evening': datetime.datetime(2025, 5, 6, 0, 0), 'stop_evening': datetime.datetime(2025, 5, 6, 0, 0), 'createdAt': datetime.datetime(2025, 5, 5, 3, 29, 41, 862000), 'updatedAt': datetime.datetime(2025, 5, 5, 3, 29, 41, 862000), '__v': 0}
+⏰ Current time: 2025-05-06 13:31:00+07:00
+📦 Last run data: {'start_morning': '13:22', 'stop_morning': '13:27', 'start_evening': '2025-05-06 13:01', 'stop_evening': '2025-05-06 13:06'}
+🔍 Checking event 'start_morning' → target time: 07:00:00
+⏭️ Not time for start_morning yet
+🔍 Checking event 'stop_morning' → target time: 07:00:00
+⏭️ Not time for stop_morning yet
+🔍 Checking event 'start_evening' → target time: 07:00:00
+⏭️ Not time for start_evening yet
+🔍 Checking event 'stop_evening' → target time: 07:00:00
+⏭️ Not time for stop_evening yet
+✅ Finished cycle
+
+[h264 @ 0x13c6a4860] error while decoding MB 63 6, bytestream -8
+🚀 Starting check_and_run.py
+✅ Fetched document from MongoDB: {'_id': ObjectId('681830a50a35fa1e3ebb6e60'), 'start_morning': datetime.datetime(2025, 5, 6, 0, 0), 'stop_morning': datetime.datetime(2025, 5, 6, 0, 0), 'start_evening': datetime.datetime(2025, 5, 6, 0, 0), 'stop_evening': datetime.datetime(2025, 5, 6, 0, 0), 'createdAt': datetime.datetime(2025, 5, 5, 3, 29, 41, 862000), 'updatedAt': datetime.datetime(2025, 5, 5, 3, 29, 41, 862000), '__v': 0}
+⏰ Current time: 2025-05-06 13:32:00+07:00
+📦 Last run data: {'start_morning': '13:22', 'stop_morning': '13:27', 'start_evening': '2025-05-06 13:01', 'stop_evening': '2025-05-06 13:06'}
+🔍 Checking event 'start_morning' → target time: 07:00:00
+⏭️ Not time for start_morning yet
+🔍 Checking event 'stop_morning' → target time: 07:00:00
+⏭️ Not time for stop_morning yet
+🔍 Checking event 'start_evening' → target time: 07:00:00
+⏭️ Not time for start_evening yet
+🔍 Checking event 'stop_evening' → target time: 07:00:00
+⏭️ Not time for stop_evening yet
+✅ Finished cycle
+

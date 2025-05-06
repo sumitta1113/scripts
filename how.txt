@@ -1,0 +1,15 @@
+crontab -e
+
+# ⏰ 05:00 เปิด app_copy.py
+0 5 * * * /usr/local/bin/python3 /Users/poy/Desktop/scripts/start_face.py
+
+# 🛑 11:00 ปิด app_copy.py และเปิด testcam.py
+0 11 * * * /usr/local/bin/python3 /Users/poy/Desktop/scripts/stop_face.py
+0 11 * * * /usr/local/bin/python3 /Users/poy/Desktop/scripts/start_face_review.py
+
+# 🛑 14:00 ปิด testcam.py และเปิด app_copy.py
+0 14 * * * /usr/local/bin/python3 /Users/poy/Desktop/scripts/stop_face_review.py
+0 14 * * * /usr/local/bin/python3 /Users/poy/Desktop/scripts/start_face.py
+
+# 🛑 20:00 ปิด app_copy.py
+00 20 * * * /usr/local/bin/python3 /Users/poy/Desktop/scripts/stop_face.py
