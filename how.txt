@@ -1,15 +1,64 @@
+crontab -l
 crontab -e
 
-# ⏰ 05:00 เปิด app_copy.py
-0 5 * * * /usr/local/bin/python3 /Users/poy/Desktop/scripts/start_face.py
+i
 
-# 🛑 11:00 ปิด app_copy.py และเปิด testcam.py
-0 11 * * * /usr/local/bin/python3 /Users/poy/Desktop/scripts/stop_face.py
-0 11 * * * /usr/local/bin/python3 /Users/poy/Desktop/scripts/start_face_review.py
+* * * * * /Users/poy/scripts/run_check.sh
+0 12 * * * /Users/poy/envs/face_env/bin/python /Users/poy/project/new/back_end/back_end_ai/add_dataset/loop_add_dataset_copy.py >> /Users/poy/scripts/upload.log 2>&1
+0 17 * * * /Users/poy/envs/face_env/bin/python /Users/poy/project/new/back_end/back_end_ai/add_dataset/loop_add_dataset_copy.py >> /Users/poy/scripts/upload.log 2>&1 
 
-# 🛑 14:00 ปิด testcam.py และเปิด app_copy.py
-0 14 * * * /usr/local/bin/python3 /Users/poy/Desktop/scripts/stop_face_review.py
-0 14 * * * /usr/local/bin/python3 /Users/poy/Desktop/scripts/start_face.py
+esc
 
-# 🛑 20:00 ปิด app_copy.py
-00 20 * * * /usr/local/bin/python3 /Users/poy/Desktop/scripts/stop_face.py
+:wq
+
+crontab -l
+
+
+upload_embeddings.log	logging.info(...) ภายในโค้ด
+
+upload.log	print(), errors, warnings, ข้อความอื่นจาก stdout/stderr	รวมทุกอย่างที่ cron ดักไว้
+
+**************************************
+
+✅ 1. ตรวจสอบโปรเซสที่ใช้พอร์ต 8000
+bash
+Copy
+Edit
+lsof -i :8000
+ผลที่ได้จะหน้าตาประมาณนี้:
+bash
+Copy
+Edit
+COMMAND   PID  USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+python3  1234  poy    3u   IPv4 0xabc123...      0t0  TCP *:8000 (LISTEN)
+COMMAND: คือชื่อ process เช่น python3
+
+PID: คือเลขโปรเซส (สามารถใช้ kill ได้)
+
+NAME: จะขึ้น *:8000 (LISTEN) ถ้ากำลังเปิดรอเชื่อมต่อ
+
+✅ 2. ถ้าคุณอยาก “ปิด” โปรแกรมที่ใช้พอร์ตนี้
+ใช้:
+
+bash
+Copy
+Edit
+kill -9 <PID>
+ตัวอย่าง:
+
+bash
+Copy
+Edit
+kill -9 1234
+✅ 3. ตรวจแบบละเอียดขึ้น (ดู command เต็ม)
+bash
+Copy
+Edit
+ps -p $(lsof -ti :8000) -o pid,command
+ตัวอย่างผลลัพธ์:
+
+bash
+Copy
+Edit
+  PID COMMAND
+ 1234 python3 /Users/poy/project/app.py

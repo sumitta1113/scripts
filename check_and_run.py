@@ -6,7 +6,7 @@ import json
 import os
 from dotenv import load_dotenv
 import time
-
+import logging
 load_dotenv()
 
 # =========== CONFIG ===========
@@ -26,12 +26,20 @@ SCRIPT_PATHS = {
     'stop_back': os.getenv('STOP_BACK_SCRIPT')
 }
 # =========== END CONFIG ===========
+LOG_FILE = "/Users/poy/scripts/check_and_run.log"
+logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format='%(asctime)s - %(message)s')
 
 def load_last_run():
     if os.path.exists(LAST_RUN_FILE):
+        file_size = os.path.getsize(LAST_RUN_FILE)
+        if file_size > 5 * 1024 * 1024:  # > 5MB ถือว่าแปลกแล้ว
+            logging.warning(f"⚠️ last_run.json ใหญ่ผิดปกติ ({file_size} bytes), ลบทิ้งแล้วสร้างใหม่")
+            os.remove(LAST_RUN_FILE)
+            return {}
         with open(LAST_RUN_FILE, 'r') as f:
             return json.load(f)
     return {}
+
 
 def save_last_run(data):
     with open(LAST_RUN_FILE, 'w') as f:
@@ -42,7 +50,7 @@ def run_script(script):
     subprocess.Popen(['/Users/poy/envs/face_env/bin/python', script])
 
 def stop_script(pattern, port=None):
-    print(f"🛑 Stopping: {pattern}")
+    logging.info(f"🛑 Stopping: {pattern}")
     subprocess.run(['pkill', '-f', pattern])
 
     # check if process is dead
@@ -50,12 +58,12 @@ def stop_script(pattern, port=None):
         time.sleep(1)
         result = subprocess.run(['pgrep', '-f', pattern], capture_output=True, text=True)
         if result.stdout.strip() == '':
-            print(f"✅ Process '{pattern}' stopped")
+            logging.info(f"✅ Process '{pattern}' stopped")
             break
         else:
             print(f"⏳ Waiting for '{pattern}' to stop... (try {i+1}/10)")
     else:
-        print(f"⚠️ Timeout: forcing kill for '{pattern}'")
+        logging.warning(f"⚠️ Timeout: forcing kill for '{pattern}'")
         subprocess.run(['pkill', '-9', '-f', pattern])
 
     # check port is free
@@ -66,39 +74,67 @@ def stop_script(pattern, port=None):
             time.sleep(1)
             result = subprocess.run(['/usr/sbin/lsof', '-i', f':{port}'], capture_output=True, text=True, env=env)
             if result.stdout.strip() == '':
-                print(f"✅ Port {port} is now free")
+                logging.info(f"✅ Port {port} is now free")
                 return
             else:
                 # force kill by port owner if needed
                 lines = result.stdout.strip().split('\n')
                 if len(lines) > 1:
                     pid = lines[1].split()[1]
-                    print(f"⚠️ Force killing PID {pid} on port {port}")
+                    logging.warning(f"⚠️ Force killing PID {pid} on port {port}")
                     subprocess.run(['kill', '-9', pid])
-            print(f"⏳ Waiting for port {port} to be free... (try {i+1}/10)")
-        print(f"⚠️ Timeout: Port {port} still in use after wait")
+        logging.warning(f"⚠️ Timeout: Port {port} still in use after wait")
 
-def is_time_to_run(now, target_time):
-    return now.hour == target_time.hour and now.minute == target_time.minute
 
 def main():
-    print("🚀 Starting check_and_run.py")
+    logging.info("🚀 Starting check_and_run.py")
     client = MongoClient(MONGO_URI)
     db = client[DB_NAME]
     collection = db[COLLECTION_NAME]
-    doc = collection.find_one()
-    print(f"✅ Fetched document from MongoDB: {doc}")
+    #doc = collection.find_one()
+    # print(f"✅ Fetched document from MongoDB: {doc}")
 
+    # tz = pytz.timezone(TIMEZONE)
+    # now = datetime.datetime.now(tz).replace(second=0, microsecond=0)
+    # print(f"⏰ Current time: {now}")
+
+    # events = {
+    #     'start_morning': doc['start_morning'],
+    #     'stop_morning': doc['stop_morning'],
+    #     'start_evening': doc['start_evening'],
+    #     'stop_evening': doc['stop_evening']
+    # }
     tz = pytz.timezone(TIMEZONE)
     now = datetime.datetime.now(tz).replace(second=0, microsecond=0)
     print(f"⏰ Current time: {now}")
+    # หาช่วงเวลาเริ่มต้นและสิ้นสุดของวันนั้น
+    start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    end_of_day = start_of_day + datetime.timedelta(days=1)
 
+    print(f"🔍 Querying for start_morning between {start_of_day} and {end_of_day}")
+
+    # ค้นหา document ที่ start_morning อยู่ในช่วงวันนี้
+    doc = collection.find_one({
+        "start_morning": {
+            "$gte": start_of_day,
+            "$lt": end_of_day
+        }
+    })
+
+    if not doc:
+        logging.warning("❌ No schedule found for today.")
+        return
+
+
+
+    # ดึงเวลาออกมา
     events = {
-        'start_morning': doc['start_morning'],
-        'stop_morning': doc['stop_morning'],
-        'start_evening': doc['start_evening'],
-        'stop_evening': doc['stop_evening']
+        'start_morning': doc.get('start_morning'),
+        'stop_morning': doc.get('stop_morning'),
+        'start_evening': doc.get('start_evening'),
+        'stop_evening': doc.get('stop_evening')
     }
+
 
     # map stop_morning → run stop_face.py + start_face_review.py
     # map start_evening → run stop_face_review.py + start_face_back.py
@@ -111,27 +147,47 @@ def main():
         'stop_evening': lambda: stop_script('start_face_back.py', port=8000)
      }
     last_run = load_last_run()
-    print(f"📦 Last run data: {last_run}")
-    now_time = now.time()
-    for key, iso_time in events.items():
-        if iso_time is None:
-           continue
-        if iso_time.tzinfo is None:
-          iso_time = iso_time.replace(tzinfo=pytz.UTC)
-        target_time = iso_time.astimezone(tz).time()
-        print(f"🔍 Checking event '{key}' → target time: {target_time}")
-        if is_time_to_run(now_time, target_time):
-            print(f"⏰ Time match for {key}")
-            if last_run.get(key) != now.strftime('%H:%M'):
-               print(f"🚀 Triggering {key} at {now}")
-               actions[key]()
-               last_run[key] = now.strftime('%H:%M')
-            else:
-              print(f"⚠️ Already triggered {key} for this minute → skipping")
+    #print(f"📦 Last run data: {last_run}")
+    # ====== Enhanced Time Logic ======
+    def get_dt(event):
+        dt = events.get(event)
+        if dt and dt.tzinfo:
+            dt = dt.astimezone(tz).replace(tzinfo=None)
+        return dt
+
+    now = now.replace(tzinfo=None)
+
+    for key in ['start_morning', 'stop_morning', 'start_evening', 'stop_evening']:
+        target_dt = get_dt(key)
+        if not target_dt:
+            continue
+
+        last = last_run.get(key)
+        already_ran = last == target_dt.strftime('%Y-%m-%d %H:%M')
+
+        if key == 'start_morning' and now >= target_dt and not already_ran:
+            logging.info(f"✅ Triggering {key}")
+            actions[key]()
+            last_run[key] = target_dt.strftime('%Y-%m-%d %H:%M')
+
+        elif key == 'stop_morning' and now >= target_dt and not already_ran:
+            if 'start_morning' not in last_run:
+                logging.warning("⚠️ Skipping start_morning (missed) → mocking it")
+                last_run['start_morning'] = get_dt('start_morning').strftime('%Y-%m-%d %H:%M')
+            logging.info(f"✅ Triggering {key}")
+            actions[key]()
+            last_run[key] = target_dt.strftime('%Y-%m-%d %H:%M')
+
+        elif key in ['start_evening', 'stop_evening'] and now >= target_dt and not already_ran:
+            logging.info(f"✅ Triggering {key}")
+            actions[key]()
+            last_run[key] = target_dt.strftime('%Y-%m-%d %H:%M')
+
         else:
-           print(f"⏭️ Not time for {key} yet")
+            logging.info(f"⏭️ Skipping {key} (already ran or not yet time)")
+
     save_last_run(last_run)
-    print("✅ Finished cycle\n")
+    logging.info("✅ Finished cycle\n")
 
 if __name__ == "__main__":
     main()
