@@ -62,3 +62,47 @@ Copy
 Edit
   PID COMMAND
  1234 python3 /Users/poy/project/app.py
+
+
+
+172.16.8.143
+255.255.255.0
+172.16.8.254
+
+
+ * * * * * /bin/bash /Users/poy/scripts/run_check.sh
+* * * * * /Users/poy/envs/face_env/bin/python /Users/poy/project/new/back_end/back_end_ai/add_dataset/loop_add_dataset_copy.py >> /Users/poy/scripts/upload.log 2>&1
+* * * * * /bin/bash /Users/poy/scripts/watch_react.sh
+
+
+go to poy floder
+ship + command + g
+
+
+
+lsof -i -P -n
+pkill -f vite
+lsof -i :8000 | grep ESTABLISHED
+
+*/10 * * * * /Users/poy/envs/face_env/bin/python /Users/poy/scripts/monitor_mac_m1_gpu.py >> /Users/poy/scripts/monitor.log 2>&1
+* * * * * /Users/poy/envs/face_env/bin/python /Users/poy/project/new/back_end/back_end_ai/add_dataset/loop_add_dataset_copy.py >> /Users/poy/scripts/upload.log 2>&1
+* * * * * /bin/bash /Users/poy/scripts/watch_react.sh
+
+
+
+*/10 * * * * /Users/poy/envs/face_env/bin/python /Users/poy/scripts/monitor_mac_m1_gpu.py >> /Users/poy/scripts/monitor.log 2>&1
+* * * * * /Users/poy/envs/face_env/bin/python /Users/poy/project/new/back_end/back_end_ai/add_dataset/loop_add_dataset_copy.py >> /Users/poy/scripts/upload.log 2>&1
+* * * * * /bin/bash /Users/poy/scripts/run_check.sh
+* * * * * /bin/bash /Users/poy/scripts/watch_react.sh
+                                                     
+
+*/10 * * * * /Users/poy/envs/face_env/bin/python /Users/poy/scripts/monitor_mac_m1_gpu.py >> /Users/poy/scripts/monitor.log 2>&1
+* * * * * /Users/poy/envs/face_env/bin/python /Users/poy/project/new/back_end/back_end_ai/add_dataset/loop_add_dataset_copy.py >> /Users/poy/scripts/upload.log 2>&1
+* * * * * /bin/bash /Users/poy/scripts/run_check.sh
+* * * * * /bin/bash /Users/poy/scripts/watch_react.sh   
+
+
+*/10 * * * * /Users/poy/envs/face_env/bin/python /Users/poy/scripts/monitor_mac_m1_gpu.py >> /Users/poy/scripts/monitor.log 2>&1
+* * * * * /Users/poy/envs/face_env/bin/python /Users/poy/project/new/back_end/back_end_ai/add_dataset/loop_add_dataset_copy.py >> /Users/poy/scripts/upload.log 2>&1
+* * * * * /bin/bash /Users/poy/scripts/run_check.sh
+* * * * * /bin/bash /Users/poy/scripts/watch_react.sh

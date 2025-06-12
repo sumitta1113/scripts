@@ -1,2 +1,2 @@
 import os
-os.system("pkill -f 'testcam.py'")
+os.system("pkill -f 'testcam_fastAPI.py'")

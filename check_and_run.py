@@ -7,6 +7,21 @@ import os
 from dotenv import load_dotenv
 import time
 import logging
+import socket
+
+def wait_for_internet(timeout=30):
+    print("🌐 Checking internet connection...")
+    for i in range(timeout):
+        try:
+            socket.create_connection(("8.8.8.8", 53), timeout=2)
+            print("✅ Internet is available")
+            return True
+        except OSError:
+            print(f"⏳ Waiting for internet... ({i + 1}s)")
+            time.sleep(1)
+    print("❌ No internet connection after waiting.")
+    return False
+
 load_dotenv()
 
 # =========== CONFIG ===========
@@ -111,7 +126,7 @@ def main():
     start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
     end_of_day = start_of_day + datetime.timedelta(days=1)
 
-    print(f"🔍 Querying for start_morning between {start_of_day} and {end_of_day}")
+    print(f"🔍 Querying between {start_of_day} and {end_of_day}")
 
     # ค้นหา document ที่ start_morning อยู่ในช่วงวันนี้
     doc = collection.find_one({
@@ -190,4 +205,7 @@ def main():
     logging.info("✅ Finished cycle\n")
 
 if __name__ == "__main__":
-    main()
+    if wait_for_internet(timeout=30):
+        main()
+    else:
+        logging.error("❌ No internet. Skipping execution.")
