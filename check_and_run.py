@@ -106,19 +106,7 @@ def main():
     client = MongoClient(MONGO_URI)
     db = client[DB_NAME]
     collection = db[COLLECTION_NAME]
-    #doc = collection.find_one()
-    # print(f"✅ Fetched document from MongoDB: {doc}")
 
-    # tz = pytz.timezone(TIMEZONE)
-    # now = datetime.datetime.now(tz).replace(second=0, microsecond=0)
-    # print(f"⏰ Current time: {now}")
-
-    # events = {
-    #     'start_morning': doc['start_morning'],
-    #     'stop_morning': doc['stop_morning'],
-    #     'start_evening': doc['start_evening'],
-    #     'stop_evening': doc['stop_evening']
-    # }
     tz = pytz.timezone(TIMEZONE)
     now = datetime.datetime.now(tz).replace(second=0, microsecond=0)
     print(f"⏰ Current time: {now}")
@@ -149,11 +137,6 @@ def main():
         'start_evening': doc.get('start_evening'),
         'stop_evening': doc.get('stop_evening')
     }
-
-
-    # map stop_morning → run stop_face.py + start_face_review.py
-    # map start_evening → run stop_face_review.py + start_face_back.py
-    # map stop_evening → run stop_face_back.py
 
     actions = {
         'start_morning': lambda: run_script(SCRIPT_PATHS['start_morning']),
