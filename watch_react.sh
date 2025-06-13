@@ -5,6 +5,9 @@ PORT=5173
 LOG_FILE="/Users/poy/scripts/react_watchdog.log"
 MAX_MB=10
 
+# ✅ เพิ่ม PATH ของ npm
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
 # 🔁 ถ้า log เกิน 10MB → ลบทิ้ง
 if [ -f "$LOG_FILE" ]; then
   FILE_SIZE_MB=$(du -m "$LOG_FILE" | cut -f1)
@@ -13,11 +16,12 @@ if [ -f "$LOG_FILE" ]; then
   fi
 fi
 
-# 🔍 ตรวจว่า port 5173 มีอะไรฟังอยู่ไหม
-if ! lsof -i :$PORT | grep -q "LISTEN"; then
-    echo "$(date): 🚀 React dev server not running — starting it now..." >> "$LOG_FILE"
-    cd "$REACT_DIR"
-    npm run dev >> "$LOG_FILE" 2>&1 &
+
+# ✅ เช็คว่ามี process ของ React dev server (Vite) รันอยู่หรือไม่
+if pgrep -f "vite" > /dev/null; then
+  echo "$(date): ✅ React Dev Server is running" >> "$LOG_FILE"
 else
-    echo "$(date): ✅ React server already running" >> "$LOG_FILE"
+  echo "$(date): ❌ React Dev Server is NOT running → starting it now..." >> "$LOG_FILE"
+  cd "$REACT_DIR" || exit
+  npm run dev >> "$LOG_FILE" 2>&1 &
 fi

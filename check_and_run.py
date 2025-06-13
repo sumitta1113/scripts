@@ -62,7 +62,38 @@ def save_last_run(data):
 
 def run_script(script):
     print(f"🔧 Running: {script}")
-    subprocess.Popen(['/Users/poy/envs/face_env/bin/python', script])
+    try:
+        result = subprocess.run(
+            ['/Users/poy/envs/face_env/bin/python', script],
+            check=True
+        )
+        logging.info(f"✅ Script {script} executed successfully")
+        return True
+    except subprocess.CalledProcessError as e:
+        logging.error(f"❌ Script {script} failed with return code {e.returncode}")
+        return False
+
+def run_uvicorn_script(script_path, app_module, log_path):
+    try:
+        with open(log_path, "a") as log_file:
+            subprocess.Popen([
+                "/Users/poy/envs/face_env/bin/uvicorn",
+                f"{app_module}:app",
+                "--host", "0.0.0.0",
+                "--port", "8000",
+                "--log-level", "warning",
+                "--no-access-log"
+            ],
+            stdout=log_file,
+            stderr=log_file,
+            cwd=os.path.dirname(script_path)
+            )
+        logging.info(f"✅ Started uvicorn for {app_module}")
+        return True
+    except Exception as e:
+        logging.error(f"❌ Failed to run {app_module}: {e}")
+        return False
+
 
 def stop_script(pattern, port=None):
     logging.info(f"🛑 Stopping: {pattern}")
@@ -138,12 +169,37 @@ def main():
         'stop_evening': doc.get('stop_evening')
     }
 
+    # actions = {
+    # 'start_morning': lambda: run_script(SCRIPT_PATHS['start_morning']),
+    # 'stop_morning': lambda: (stop_script('start_face.py', port=8000) or True) and run_script(SCRIPT_PATHS['start_review']),
+    # 'start_evening': lambda: (stop_script('start_face_review.py', port=8000) or True) and run_script(SCRIPT_PATHS['start_back']),
+    # 'stop_evening': lambda: stop_script('start_face_back.py', port=8000) or True
+    #  }
     actions = {
-        'start_morning': lambda: run_script(SCRIPT_PATHS['start_morning']),
-        'stop_morning': lambda: (stop_script('start_face.py', port=8000), run_script(SCRIPT_PATHS['start_review'])),
-        'start_evening': lambda: (stop_script('start_face_review.py', port=8000), run_script(SCRIPT_PATHS['start_back'])),
-        'stop_evening': lambda: stop_script('start_face_back.py', port=8000)
-     }
+    'start_morning': lambda: run_uvicorn_script(
+        SCRIPT_PATHS['start_morning'],
+        "app_fastAPI",
+        "/Users/poy/scripts/face_recognition.log"
+    ),
+
+    'stop_morning': lambda: (
+        stop_script("app_fastAPI", port=8000) or True
+    ) and run_uvicorn_script(
+        SCRIPT_PATHS['start_review'],
+        "testcam_fastAPI",
+        "/Users/poy/scripts/cam_stream.log"
+    ),
+
+    'start_evening': lambda: (
+        stop_script("testcam_fastAPI", port=8000) or True
+    ) and run_uvicorn_script(
+        SCRIPT_PATHS['start_back'],
+        "app_fastAPI_back",
+        "/Users/poy/scripts/face_recognition_back.log"
+    ),
+
+    'stop_evening': lambda: stop_script("app_fastAPI_back", port=8000) or True
+}
     last_run = load_last_run()
     #print(f"📦 Last run data: {last_run}")
     # ====== Enhanced Time Logic ======
